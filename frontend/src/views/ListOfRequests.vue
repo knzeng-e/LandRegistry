@@ -8,6 +8,10 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 
+import { useDeclarationStore } from '@/stores/declarations'
+
+const useDeclaration = useDeclarationStore()
+
 const requests = ref([
   {
     NUP: '01-000072846',
@@ -62,14 +66,15 @@ const requests = ref([
 ])
 
 const submittedRequest = ref({
-  NUP: '01-000072846',
-  ilot: '840',
+  NUP: 72846,
+  ilot: 840,
   departement: 'LITTORAL',
   commune: 'Cotonou',
   status: 'EnAttente',
   quartier: 'AHOUANLEKO',
   arrondissement: '12eme arrondissement',
-  superficieEnM2: 269243
+  superficieEnM2: 269243,
+  description: 'Une description'
 })
 
 const selectedRequest = ref()
@@ -98,9 +103,12 @@ const onRowSelect = (event: any) => {
 
 const onSubmitDeclaration = () => {
   showForm.value = true
+  
 }
 
-const submitRequest = () => {}
+const submitRequest = async () => {
+  await useDeclaration.sendDeclaration(submittedRequest.value);
+}
 </script>
 
 <template>
