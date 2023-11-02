@@ -4,9 +4,16 @@ import { ref } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
+import Toast from 'primevue/toast';
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
+import ConfirmDialog from 'primevue/confirmdialog';
+
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
+
+const confirm = useConfirm();
+const toast = useToast();
 
 const requests = ref([
   {
@@ -78,18 +85,23 @@ const showDetails = ref(false)
 const showForm = ref(false)
 
 // Functions (methods vue options)
-const getStatus = (status: string) => {
-  switch (status) {
-    case 'Rejete':
-      return 'danger'
 
-    case 'Valide':
-      return 'success'
+const sellPlot = (data: any) => {
+    console.log('Event ---- ', event)
+    confirm.require({
+        group: 'headless',
+        header: 'Êtes vous sûr ?',
+        message: `Mise en vente de la parcelle ${data.NUP} d'un montant de 8 453 202 F FCFA`,
+        accept: () => {
+            toast.add({ severity: 'info', summary: 'Confirmé', detail: 'Mise en vente effectuée', life: 3000 });
+        },
+        reject: () => {
+            toast.add({ severity: 'error', summary: 'Annulé', detail: 'Mise en vente annulée', life: 3000 });
+        }
+    });
+};
 
-    case 'EnAttente':
-      return 'warning'
-  }
-}
+const confirmDeletePlot = () => { }
 
 const onRowSelect = (event: any) => {
   showDetails.value = true
@@ -99,8 +111,6 @@ const onRowSelect = (event: any) => {
 const onSubmitDeclaration = () => {
   showForm.value = true
 }
-
-const submitRequest = () => {}
 </script>
 
 <template>
@@ -116,8 +126,7 @@ const submitRequest = () => {}
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-xl text-900 font-bold">Liste des déclarations</span>
-          <Button icon="pi pi-plus" @click="onSubmitDeclaration" raised />
+          <span class="text-xl text-900 font-bold">Liste des parcelles</span>
         </div>
       </template>
       <Column field="NUP" header="NUP"></Column>
@@ -127,12 +136,31 @@ const submitRequest = () => {}
       <Column field="departement" header="Département"></Column>
       <Column field="commune" header="Commune"></Column>
       <!-- <Column field="quartier" header="Quartier"></Column> -->
-      <Column field="status" header="Statut">
+      <!-- <Column field="status" header="Statut">
         <template #body="{ data }">
           <Tag :value="data.status" :severity="getStatus(data.status)" />
         </template>
-      </Column>
+      </Column> -->
       <!-- <Column field="arrondissement" header="Arrondissement"></Column> -->
+      <Column :exportable="false" style="min-width: 2rem">
+        <template #body="slotProps">
+          <Button
+            icon="pi pi-dollar"
+            label="mettre en vente"
+            outlined
+            class="mr-2"
+            size="small"
+            @click="sellPlot(slotProps.data)"
+          />
+          <!-- <Button
+            icon="pi pi-trash"
+            outlined
+            severity="danger"
+            size="small"
+            @click="confirmDeletePlot(slotProps.data)"
+          /> -->
+        </template>
+      </Column>
     </DataTable>
   </div>
 
@@ -270,6 +298,25 @@ const submitRequest = () => {}
     </template>
   </Dialog>
   <!-- END Modal to submit declaration -->
+
+
+  <ConfirmDialog group="headless">
+        <template #container="{ message, acceptCallback, rejectCallback }">
+            <div class="flex flex-column align-items-center p-5 surface-overlay border-round">
+                <div class="border-circle bg-primary inline-flex justify-content-center align-items-center h-6rem w-6rem -mt-8">
+                    <i class="pi pi-question text-5xl"></i>
+                </div>
+                <span class="font-bold text-2xl block mb-2 mt-4">{{ message.header }}</span>
+                <p class="mb-0">{{ message.message }}</p>
+                <div class="flex align-items-center gap-2 mt-4">
+                    <Button label="Confirmer" @click="acceptCallback" class="w-8rem"></Button>
+                    <Button label="Annuler" outlined @click="rejectCallback" class="w-8rem"></Button>
+                </div>
+            </div>
+        </template>
+    </ConfirmDialog>
+    <Toast />
+
 </template>
 
 <style scoped></style>
